@@ -58,7 +58,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
     allowBlobPublicAccess: false
     minimumTlsVersion: 'TLS1_2'
     networkAcls: {
-      defaultAcloudclubion: 'Deny'
+      defaultAction: 'Deny'
       bypass: 'AzureServices'
     }
   }
@@ -87,9 +87,9 @@ resource blobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
     subnet: {
       id: vnet.properties.subnets[0].id
     }
-    privateLinkServiceConnecloudclubions: [
+    privateLinkServiceConnections: [
       {
-        name: 'blobConnecloudclubion'
+        name: 'blobConnection'
         properties: {
           privateLinkServiceId: storage.id
           groupIds: [
@@ -108,9 +108,9 @@ resource tablePrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = 
     subnet: {
       id: vnet.properties.subnets[0].id
     }
-    privateLinkServiceConnecloudclubions: [
+    privateLinkServiceConnections: [
       {
-        name: 'tableConnecloudclubion'
+        name: 'tableConnection'
         properties: {
           privateLinkServiceId: storage.id
           groupIds: [
