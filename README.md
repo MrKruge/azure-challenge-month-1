@@ -1,167 +1,204 @@
-# 🔷 Azure - Day 1 Challenge
+# 🚧 Azure Private Networking Troubleshooting Challenge
 
-Welcome to **The Cloud Club**!
+Welcome to this month's hands-on Azure troubleshooting challenge.
 
-Here, we learn by doing — not watching tutorials — by debugging broken cloud infrastructure.
+You'll be debugging a real-world Azure networking issue:  
+👉 **Accessing Azure services from a private subnet with no internet access.**
 
-This is your first Azure challenge. It's a warm-up to show you how our challenges work.
-
-**Quick overview:** Deploy broken infrastructure → Find what's wrong → Fix it → Post your win in #wins
-
----
-
-## 📖 Scenario
-
-A startup developer deployed a simple web server in Azure:
-
-- Ubuntu VM
-- NGINX installed
-- Public IP
-- Virtual Network + Subnet
-- Network Security Group (NSG)
-
-But something is wrong. **The web server is not reachable from the internet.**
-
-**Your mission:** figure out what's wrong, fix it, and validate your fix.
+Most learners complete this challenge in **30–45 minutes**.
 
 ---
 
-## ⚠️ Problem
+## 🧠 Challenge Flow
 
-When accessing the web server via the VM's public IP:
+**Deploy broken infrastructure → Investigate → Fix → Validate → Share your win**
 
-```bash
-curl http://<PUBLIC_IP>
-```
+---
 
-The connection **times out**.
+## 📖 The Scenario
+
+A development team is building an MVP that relies on:
+
+- **Azure Blob Storage**
+
+Their application needs to:
+
+- Upload files to a Blob Storage container
+- Download files from a Blob Storage container
+- Delete files from a Blob Storage container
+
+For security and cost reasons, the application must run in a **private subnet**:
+
+- ❌ No public internet access
+- ❌ No NAT Gateway
+- ✅ Private access only
+
+The infrastructure has already been deployed — but **the application can't connect to storage.**
+
+They’ve asked you to figure out why.
+
+---
+
+## ⚠️ The Problem
+
+The application running on an Azure Virtual Machine returns **connection errors** when attempting to access:
+
+- Azure Blob Storage
+
+There is **no outbound internet access**, and public endpoints are **disabled**.
 
 ### ✅ Expected Behavior
 
-The web server should be accessible from the internet via HTTP (port 80).
+The VM in the private subnet should:
 
-```html
-<h1>Cloud Club Azure Challenge</h1>
-```
+- Access Blob Storage privately
+- Use Private Endpoints
+- Require no internet access
 
 ---
 
-## 🧑‍💻 Deployment Instructions
+## 🛠️ Architecture (High-Level)
 
-### Step 1: Open Azure Cloud Shell
+- Azure Virtual Network (VNet)
+- Private subnet
+- Linux VM inside the private subnet
+- Storage Account (Blob)
+- Private Endpoint for Blob
+- Network Security Groups (NSGs)
 
-1. Go to the [Azure Portal](https://portal.azure.com)
-2. Click the **Cloud Shell** icon (top-right)
-3. Select **Bash**
+**Something important is missing… 👀**
 
-### Step 2: Create a Resource Group
+---
+
+## 🧑‍💻 Your Mission
+
+### 👉 Step 1: Deploy the Broken Infrastructure
+
+Open Azure Cloud Shell and run:
 
 ```bash
-echo "Creating Resource Group CloudClub-Challenge1..."
-az group create \
-  --name "CloudClub-Challenge1" \
-  --location westeurope
-```
-### Step 3: Deploy the Broken Infrastructure
-
-Copy the code and run in the terminal:
-
-```bash
-curl -o challenge.bicep https://raw.githubusercontent.com/MrKruge/azure-challenge-day-1/main/day-1-challenge.bicep
-
 az deployment group create \
-  --resource-group CloudClub-Challenge1 \
-  --template-file challenge.bicep \
-  --parameters adminPassword='hjErTzzsZWT5BjmWxXNV'
+  --resource-group CloudTalents-Challenge2 \
+  --template-uri https://raw.githubusercontent.com/<ORG>/<REPO>/main/azure-challenge2.bicep \
+  --parameters adminPassword='P@ssw0rd123!'
 ```
 
-Wait until deployment completes.
+Wait for the deployment to complete successfully.
 
-**If it fails, figure out why!** 🤔 
+### 👉 Step 2: Investigate
 
-### 🕵️ Step 4: Investigate
+Your goal is to determine **why the VM cannot reach Blob Storage.**
 
-Check the following Azure resources:
+Start by checking:
 
-- Virtual Network (VNet)
-- Subnet
-- Network Security Group (NSG)
-- Network Interface (NIC)
-- Virtual Machine
+- Storage account networking settings
+- Private Endpoint configuration
+- DNS resolution from inside the VM
+- How Azure resolves service names when using Private Endpoints
+- Network Security Groups (NSGs)
 
-💡 **Hint:** Think about how traffic flows from the internet to a VM in Azure.
+💡 **Hint:**  
+Private Endpoints change where traffic goes — but not how names resolve.
 
-### Step 5: Fix It
+Ask yourself:
 
-Fix it via the Azure Portal:
+> How does a VM in a private subnet resolve `*.blob.core.windows.net`?
 
-1. Go to **Network Security Groups**
-2. Find the missing rule / Fix it in the **most secure way**
-3. Save and retry accessing the web server
+### 👉 Step 3: Fix It
 
-### Step 6: Validate
+Once you identify the issue(s), fix them using the **Azure Portal** or **CLI**.
+
+You may need to configure:
+
+- Private DNS Zones
+- VNet links to DNS zones
+- Correct name resolution for:
+  - `privatelink.blob.core.windows.net`
+
+⚠️ **Do not add:**
+
+- NAT Gateway
+- Internet Gateway
+- Public network access
+
+That defeats the purpose of the challenge.
+
+### 👉 Step 4: Validate Your Fix
+
+Once fixed, the VM should be able to:
+
+- ✅ Upload a blob
+- ✅ Download a blob
+- ✅ Delete a blob
+
+**💡 Test your fix by SSH'ing into the VM and running:**
+
+First, create a test container (if it doesn't exist):
+```bash
+az storage container create --account-name <YOUR_STORAGE_ACCOUNT> --name test --auth-mode login
+```
+
+Then upload a test file:
+```bash
+az storage blob upload \
+  --account-name <YOUR_STORAGE_ACCOUNT> \
+  --container-name test \
+  --name challenge.bicep \
+  --file challenge.bicep \
+  --auth-mode login
+```
+
+Replace `<YOUR_STORAGE_ACCOUNT>` with your actual storage account name (e.g., `ccstyzkyuxdmthtca`).
+
+If everything works:  
+🎉 **Challenge solved**
+
+*(If a validation script or function is provided, run it now.)*
+
+### 👉 Step 5: Clean Up
+
+⚠️ **Important:**  
+Delete any resources you created manually before deleting the resource group.
+
+Then run:
 
 ```bash
-curl http://$(az vm show -d -g CloudClub-Challenge1 -n challenge-vm --query publicIps -o tsv)
+az group delete \
+  --name CloudClub-Challenge2 \
+  --yes --no-wait
 ```
 
-✅ **Success:** The HTML page appears. Challenge solved!
-
-**How can you get the public IP?**
-
-Find out a way to retrieve the public IP address!
-
-### Step 7: Clean Up
-
-```bash
-az group delete --name CloudClub-Challenge1 --yes --no-wait
-```
+Wait for the resource group to be fully deleted.
 
 ---
 
----
+## 🆘 Stuck? Good.
 
-## 🆘 Stuck? Good, that is how we learn.
-
-Real debugging means hitting walls. The skill is knowing how to get unstuck.
+That means you're learning.
 
 Post in **#stuck** with:
 
 - What you've checked so far
-- What you're seeing (or not seeing)
+- What you expected to see
+- What you're actually seeing
 
-**How we help each other here:**  
-Don't ask for the answer — ask for a nudge. Don't give answers — give hints.
+### How we help each other here:
 
-That's how we all get better.
+- ❌ Don't ask for the answer
+- ✅ Ask for a nudge
+- ❌ Don't give answers
+- ✅ Give hints and direction
+
+That’s how real troubleshooting skills are built.
 
 ---
 
----
-
-## 🏆 Solved it? Now Share Your Win.
+## 🏆 You Did It. Share Your Win!
 
 Head to **#wins** and post:
 
-- Screenshot of your success message
-- What did you check first?
-- What was your "aha" moment? (Keep it spoiler-free!)
+- A screenshot or description of your success
+- What you checked first
+- Your "aha" moment (keep it spoiler-free!)
 
-Don't overthink it — a few sentences is perfect.
-
-This is how we learn here: **by doing, sharing, and helping each other get better.**
-
-See you in the community. 🚀
-
----
----
-
-## ⚡ Did you share your win? Here's your next step...
-
-You've completed your first challenge. You're not here to watch — you're here to do.
-
-Ready for something harder?
-
-👉 **[This Month's Azure Challenge](../monthly-challenge/Month-01/)**
-
-A new troubleshooting challenge drops every month — each one different, each one harder than Day 1.
+A few sentences is perfect.
