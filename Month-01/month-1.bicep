@@ -69,7 +69,8 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
 ===================== */
 
 resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2023-01-01' = {
-  name: '${storage.name}/default'
+  parent: storage
+  name: 'default'
 }
 
 resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-01-01' = {
