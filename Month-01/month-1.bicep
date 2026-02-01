@@ -14,7 +14,7 @@ param storageSuffix string = uniqueString(resourceGroup().id)
 var vnetName = 'cloudclub-vnet'
 var subnetName = 'private-subnet'
 var vmName = 'cloudclub-vm'
-var storageAccountName = 'cloudclubstorage${storageSuffix}'
+var storageAccountName = 'ccst${storageSuffix}'
 var nicName = 'cloudclub-vm-nic'
 
 /* =====================
