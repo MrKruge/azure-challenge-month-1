@@ -131,6 +131,25 @@ Once fixed, the VM should be able to:
 - ✅ Download a blob
 - ✅ Delete a blob
 
+**💡 Test your fix by SSH'ing into the VM and running:**
+
+First, create a test container (if it doesn't exist):
+```bash
+az storage container create --account-name <YOUR_STORAGE_ACCOUNT> --name test --auth-mode login
+```
+
+Then upload a test file:
+```bash
+az storage blob upload \
+  --account-name <YOUR_STORAGE_ACCOUNT> \
+  --container-name test \
+  --name challenge.bicep \
+  --file challenge.bicep \
+  --auth-mode login
+```
+
+Replace `<YOUR_STORAGE_ACCOUNT>` with your actual storage account name (e.g., `ccstyzkyuxdmthtca`).
+
 If everything works:  
 🎉 **Challenge solved**
 
