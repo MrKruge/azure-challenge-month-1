@@ -16,6 +16,7 @@ var subnetName = 'private-subnet'
 var vmName = 'cloudclub-vm'
 var storageAccountName = 'ccst${storageSuffix}'
 var nicName = 'cloudclub-vm-nic'
+var nsgName = 'cloudclub-nsg'
 
 /* =====================
    VNET + SUBNET
@@ -36,6 +37,32 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {
         properties: {
           addressPrefix: '10.0.1.0/24'
           privateEndpointNetworkPolicies: 'Disabled'
+        }
+      }
+    ]
+  }
+}
+
+/* =====================
+   NETWORK SECURITY GROUP
+===================== */
+
+resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
+  name: nsgName
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'DenyAllInbound'
+        properties: {
+          priority: 1000
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
         }
       }
     ]
@@ -142,6 +169,9 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
         }
       }
     ]
+    networkSecurityGroup: {
+      id: nsg.id
+    }
   }
 }
 
