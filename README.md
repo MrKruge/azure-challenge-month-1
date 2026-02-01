@@ -77,10 +77,17 @@ The VM in the private subnet should:
 Open Azure Cloud Shell and run:
 
 ```bash
+echo "Creating Resource Group CloudClub-Challenge2.."
+az group create \
+  --name "CloudClub-Challenge2" \
+  --location westeurope
+  
+curl -o challenge.bicep https://raw.githubusercontent.com/MrKruge/azure-challenge-month-1/refs/heads/main/Month-01/month-1.bicep
+
 az deployment group create \
-  --resource-group CloudTalents-Challenge2 \
-  --template-uri https://raw.githubusercontent.com/<ORG>/<REPO>/main/azure-challenge2.bicep \
-  --parameters adminPassword='P@ssw0rd123!'
+  --resource-group CloudClub-Challenge2 \
+  --template-file challenge.bicep \
+  --parameters adminPassword='hjErTzzsZWT5BjmWxXNV'
 ```
 
 Wait for the deployment to complete successfully.
