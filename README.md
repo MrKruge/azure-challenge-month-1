@@ -1,181 +1,167 @@
-# 🚧 Azure Private Networking Troubleshooting Challenge
+# 🔷 Azure - Day 1 Challenge
 
-Welcome to this month's hands-on Azure troubleshooting challenge.
+Welcome to **The Cloud Club**!
 
-You'll be debugging a real-world Azure networking issue:  
-👉 **Accessing Azure services from a private subnet with no internet access.**
+Here, we learn by doing — not watching tutorials — by debugging broken cloud infrastructure.
 
-Most learners complete this challenge in **30–45 minutes**.
+This is your first Azure challenge. It's a warm-up to show you how our challenges work.
 
----
-
-## 🧠 Challenge Flow
-
-**Deploy broken infrastructure → Investigate → Fix → Validate → Share your win**
+**Quick overview:** Deploy broken infrastructure → Find what's wrong → Fix it → Post your win in #wins
 
 ---
 
-## 📖 The Scenario
+## 📖 Scenario
 
-A development team is building an MVP that relies on:
+A startup developer deployed a simple web server in Azure:
 
-- **Azure Blob Storage**
-- **Azure Table Storage**
+- Ubuntu VM
+- NGINX installed
+- Public IP
+- Virtual Network + Subnet
+- Network Security Group (NSG)
 
-Their application needs to:
+But something is wrong. **The web server is not reachable from the internet.**
 
-- Copy a file to a Blob Storage container
-- Delete a file from a Blob Storage container
-- Insert an item into a Table Storage table
-
-For security and cost reasons, the application must run in a **private subnet**:
-
-- ❌ No public internet access
-- ❌ No NAT Gateway
-- ✅ Private access only
-
-The infrastructure has already been deployed — but **the application can't connect to storage.**
-
-They’ve asked you to figure out why.
+**Your mission:** figure out what's wrong, fix it, and validate your fix.
 
 ---
 
-## ⚠️ The Problem
+## ⚠️ Problem
 
-The application running on an Azure Virtual Machine returns **connection errors** when attempting to access:
+When accessing the web server via the VM's public IP:
 
-- Azure Blob Storage
-- Azure Table Storage
+```bash
+curl http://<PUBLIC_IP>
+```
 
-There is **no outbound internet access**, and public endpoints are **disabled**.
+The connection **times out**.
 
 ### ✅ Expected Behavior
 
-The VM in the private subnet should:
+The web server should be accessible from the internet via HTTP (port 80).
 
-- Access Blob Storage privately
-- Access Table Storage privately
-- Use Private Endpoints
-- Require no internet access
-
----
-
-## 🛠️ Architecture (High-Level)
-
-- Azure Virtual Network (VNet)
-- Private subnet
-- Linux VM inside the private subnet
-- Storage Account (Blob + Table)
-- Private Endpoints for Blob and Table
-
-**Something important is missing… 👀**
+```html
+<h1>Cloud Club Azure Challenge</h1>
+```
 
 ---
 
-## 🧑‍💻 Your Mission
+## 🧑‍💻 Deployment Instructions
 
-### 👉 Step 1: Deploy the Broken Infrastructure
+### Step 1: Open Azure Cloud Shell
 
-Open Azure Cloud Shell and run:
+1. Go to the [Azure Portal](https://portal.azure.com)
+2. Click the **Cloud Shell** icon (top-right)
+3. Select **Bash**
+
+### Step 2: Create a Resource Group
 
 ```bash
+echo "Creating Resource Group CloudClub-Challenge1..."
+az group create \
+  --name "CloudClub-Challenge1" \
+  --location westeurope
+```
+### Step 3: Deploy the Broken Infrastructure
+
+Copy the code and run in the terminal:
+
+```bash
+curl -o challenge.bicep https://raw.githubusercontent.com/MrKruge/azure-challenge-day-1/main/day-1-challenge.bicep
+
 az deployment group create \
-  --resource-group CloudTalents-Challenge2 \
-  --template-uri https://raw.githubusercontent.com/<ORG>/<REPO>/main/azure-challenge2.bicep \
-  --parameters adminPassword='P@ssw0rd123!'
+  --resource-group CloudClub-Challenge1 \
+  --template-file challenge.bicep \
+  --parameters adminPassword='hjErTzzsZWT5BjmWxXNV'
 ```
 
-Wait for the deployment to complete successfully.
+Wait until deployment completes.
 
-### 👉 Step 2: Investigate
+**If it fails, figure out why!** 🤔 
 
-Your goal is to determine **why the VM cannot reach Blob and Table Storage.**
+### 🕵️ Step 4: Investigate
 
-Start by checking:
+Check the following Azure resources:
 
-- Storage account networking settings
-- Private Endpoint configuration
-- DNS resolution from inside the VM
-- How Azure resolves service names when using Private Endpoints
+- Virtual Network (VNet)
+- Subnet
+- Network Security Group (NSG)
+- Network Interface (NIC)
+- Virtual Machine
 
-💡 **Hint:**  
-Private Endpoints change where traffic goes — but not how names resolve.
+💡 **Hint:** Think about how traffic flows from the internet to a VM in Azure.
 
-Ask yourself:
+### Step 5: Fix It
 
-> How does a VM in a private subnet resolve `*.blob.core.windows.net`?
+Fix it via the Azure Portal:
 
-### 👉 Step 3: Fix It
+1. Go to **Network Security Groups**
+2. Find the missing rule / Fix it in the **most secure way**
+3. Save and retry accessing the web server
 
-Once you identify the issue(s), fix them using the **Azure Portal** or **CLI**.
-
-⚠️ **Do not add:**
-
-- NAT Gateway
-- Internet Gateway
-- Public network access
-
-That defeats the purpose of the challenge.
-
-### 👉 Step 4: Validate Your Fix
-
-Once fixed, the VM should be able to:
-
-- ✅ Upload a blob
-- ✅ Delete a blob
-- ✅ Insert a table entity
-
-If everything works:  
-🎉 **Challenge solved**
-
-*(If a validation script or function is provided, run it now.)*
-
-### 👉 Step 5: Clean Up
-
-⚠️ **Important:**  
-Delete any resources you created manually before deleting the resource group.
-
-Then run:
+### Step 6: Validate
 
 ```bash
-az group delete \
-  --name CloudClub-Challenge2 \
-  --yes --no-wait
+curl http://$(az vm show -d -g CloudClub-Challenge1 -n challenge-vm --query publicIps -o tsv)
 ```
 
-Wait for the resource group to be fully deleted.
+✅ **Success:** The HTML page appears. Challenge solved!
+
+**How can you get the public IP?**
+
+Find out a way to retrieve the public IP address!
+
+### Step 7: Clean Up
+
+```bash
+az group delete --name CloudClub-Challenge1 --yes --no-wait
+```
 
 ---
 
-🆘 Stuck? Good.
+---
 
-That means you’re learning.
+## 🆘 Stuck? Good, that is how we learn.
 
-Post in #stuck with:
+Real debugging means hitting walls. The skill is knowing how to get unstuck.
 
-What you’ve checked so far
+Post in **#stuck** with:
 
-What you expected to see
+- What you've checked so far
+- What you're seeing (or not seeing)
 
-What you’re actually seeing
+**How we help each other here:**  
+Don't ask for the answer — ask for a nudge. Don't give answers — give hints.
 
-### How we help each other here:
-
-- ❌ Don't ask for the answer
-- ✅ Ask for a nudge
-- ❌ Don't give answers
-- ✅ Give hints and direction
-
-That’s how real troubleshooting skills are built.
+That's how we all get better.
 
 ---
 
-## 🏆 You Did It. Share Your Win!
+---
+
+## 🏆 Solved it? Now Share Your Win.
 
 Head to **#wins** and post:
 
-- A screenshot or description of your success
-- What you checked first
-- Your "aha" moment (keep it spoiler-free!)
+- Screenshot of your success message
+- What did you check first?
+- What was your "aha" moment? (Keep it spoiler-free!)
 
-A few sentences is perfect.
+Don't overthink it — a few sentences is perfect.
+
+This is how we learn here: **by doing, sharing, and helping each other get better.**
+
+See you in the community. 🚀
+
+---
+---
+
+## ⚡ Did you share your win? Here's your next step...
+
+You've completed your first challenge. You're not here to watch — you're here to do.
+
+Ready for something harder?
+
+👉 **[This Month's Azure Challenge](../monthly-challenge/Month-01/)**
+
+A new troubleshooting challenge drops every month — each one different, each one harder than Day 1.

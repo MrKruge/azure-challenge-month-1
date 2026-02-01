@@ -128,19 +128,6 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
 }
 
 /* =====================
-   TABLE STORAGE
-===================== */
-
-resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2023-01-01' = {
-  parent: storage
-  name: 'default'
-}
-
-resource table 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-01-01' = {
-  name: '${storage.name}/default/appdata'
-}
-
-/* =====================
    PRIVATE ENDPOINTS
 ===================== */
 
@@ -162,63 +149,6 @@ resource blobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
         }
       }
     ]
-    customNetworkInterfaceName: 'pe-blob-nic'
-  }
-}
-
-resource blobPrivateEndpointNic 'Microsoft.Network/networkInterfaces@2023-05-01' existing = {
-  name: 'pe-blob-nic'
-  dependsOn: [blobPrivateEndpoint]
-}
-
-resource blobNsgAssociation 'Microsoft.Network/networkInterfaces@2023-05-01' = {
-  name: 'pe-blob-nsg'
-  location: location
-  dependsOn: [blobPrivateEndpoint]
-  properties: {
-    ipConfigurations: blobPrivateEndpointNic.properties.ipConfigurations
-    networkSecurityGroup: {
-      id: storageNsg.id
-    }
-  }
-}
-
-resource tablePrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
-  name: 'pe-table'
-  location: location
-  properties: {
-    subnet: {
-      id: vnet.properties.subnets[0].id
-    }
-    privateLinkServiceConnections: [
-      {
-        name: 'tableConnection'
-        properties: {
-          privateLinkServiceId: storage.id
-          groupIds: [
-            'table'
-          ]
-        }
-      }
-    ]
-    customNetworkInterfaceName: 'pe-table-nic'
-  }
-}
-
-resource tablePrivateEndpointNic 'Microsoft.Network/networkInterfaces@2023-05-01' existing = {
-  name: 'pe-table-nic'
-  dependsOn: [tablePrivateEndpoint]
-}
-
-resource tableNsgAssociation 'Microsoft.Network/networkInterfaces@2023-05-01' = {
-  name: 'pe-table-nsg'
-  location: location
-  dependsOn: [tablePrivateEndpoint]
-  properties: {
-    ipConfigurations: tablePrivateEndpointNic.properties.ipConfigurations
-    networkSecurityGroup: {
-      id: storageNsg.id
-    }
   }
 }
 

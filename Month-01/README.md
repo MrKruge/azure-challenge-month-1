@@ -20,13 +20,12 @@ Most learners complete this challenge in **30–45 minutes**.
 A development team is building an MVP that relies on:
 
 - **Azure Blob Storage**
-- **Azure Table Storage**
 
 Their application needs to:
 
-- Copy a file to a Blob Storage container
-- Delete a file from a Blob Storage container
-- Insert an item into a Table Storage table
+- Upload files to a Blob Storage container
+- Download files from a Blob Storage container
+- Delete files from a Blob Storage container
 
 For security and cost reasons, the application must run in a **private subnet**:
 
@@ -45,7 +44,6 @@ They’ve asked you to figure out why.
 The application running on an Azure Virtual Machine returns **connection errors** when attempting to access:
 
 - Azure Blob Storage
-- Azure Table Storage
 
 There is **no outbound internet access**, and public endpoints are **disabled**.
 
@@ -54,7 +52,6 @@ There is **no outbound internet access**, and public endpoints are **disabled**.
 The VM in the private subnet should:
 
 - Access Blob Storage privately
-- Access Table Storage privately
 - Use Private Endpoints
 - Require no internet access
 
@@ -65,8 +62,9 @@ The VM in the private subnet should:
 - Azure Virtual Network (VNet)
 - Private subnet
 - Linux VM inside the private subnet
-- Storage Account (Blob + Table)
-- Private Endpoints for Blob and Table
+- Storage Account (Blob)
+- Private Endpoint for Blob
+- Network Security Groups (NSGs)
 
 **Something important is missing… 👀**
 
@@ -89,7 +87,7 @@ Wait for the deployment to complete successfully.
 
 ### 👉 Step 2: Investigate
 
-Your goal is to determine **why the VM cannot reach Blob and Table Storage.**
+Your goal is to determine **why the VM cannot reach Blob Storage.**
 
 Start by checking:
 
@@ -97,6 +95,7 @@ Start by checking:
 - Private Endpoint configuration
 - DNS resolution from inside the VM
 - How Azure resolves service names when using Private Endpoints
+- Network Security Groups (NSGs)
 
 💡 **Hint:**  
 Private Endpoints change where traffic goes — but not how names resolve.
@@ -108,6 +107,13 @@ Ask yourself:
 ### 👉 Step 3: Fix It
 
 Once you identify the issue(s), fix them using the **Azure Portal** or **CLI**.
+
+You may need to configure:
+
+- Private DNS Zones
+- VNet links to DNS zones
+- Correct name resolution for:
+  - `privatelink.blob.core.windows.net`
 
 ⚠️ **Do not add:**
 
@@ -122,8 +128,8 @@ That defeats the purpose of the challenge.
 Once fixed, the VM should be able to:
 
 - ✅ Upload a blob
+- ✅ Download a blob
 - ✅ Delete a blob
-- ✅ Insert a table entity
 
 If everything works:  
 🎉 **Challenge solved**
@@ -147,17 +153,15 @@ Wait for the resource group to be fully deleted.
 
 ---
 
-🆘 Stuck? Good.
+## 🆘 Stuck? Good.
 
-That means you’re learning.
+That means you're learning.
 
-Post in #stuck with:
+Post in **#stuck** with:
 
-What you’ve checked so far
-
-What you expected to see
-
-What you’re actually seeing
+- What you've checked so far
+- What you expected to see
+- What you're actually seeing
 
 ### How we help each other here:
 
