@@ -109,14 +109,6 @@ Ask yourself:
 
 Once you identify the issue(s), fix them using the **Azure Portal** or **CLI**.
 
-You may need to configure:
-
-- Private DNS Zones
-- VNet links to DNS zones
-- Correct name resolution for:
-  - `privatelink.blob.core.windows.net`
-  - `privatelink.table.core.windows.net`
-
 ⚠️ **Do not add:**
 
 - NAT Gateway
@@ -147,7 +139,7 @@ Then run:
 
 ```bash
 az group delete \
-  --name CloudTalents-Challenge2 \
+  --name CloudClub-Challenge2 \
   --yes --no-wait
 ```
 

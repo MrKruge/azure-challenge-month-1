@@ -17,6 +17,7 @@ var vmName = 'cloudclub-vm'
 var storageAccountName = 'ccst${storageSuffix}'
 var nicName = 'cloudclub-vm-nic'
 var nsgName = 'cloudclub-nsg'
+var storageNsgName = 'cloudclub-storage-nsg'
 
 /* =====================
    VNET + SUBNET
@@ -52,6 +53,41 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
   location: location
   properties: {
     securityRules: [
+      {
+        name: 'DenyAllInbound'
+        properties: {
+          priority: 1000
+          direction: 'Inbound'
+          access: 'Deny'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
+    ]
+  }
+}
+
+resource storageNsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
+  name: storageNsgName
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'AllowVNetInbound'
+        properties: {
+          priority: 100
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'Storage'
+        }
+      }
       {
         name: 'DenyAllInbound'
         properties: {
@@ -126,6 +162,24 @@ resource blobPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = {
         }
       }
     ]
+    customNetworkInterfaceName: 'pe-blob-nic'
+  }
+}
+
+resource blobPrivateEndpointNic 'Microsoft.Network/networkInterfaces@2023-05-01' existing = {
+  name: 'pe-blob-nic'
+  dependsOn: [blobPrivateEndpoint]
+}
+
+resource blobNsgAssociation 'Microsoft.Network/networkInterfaces@2023-05-01' = {
+  name: 'pe-blob-nsg'
+  location: location
+  dependsOn: [blobPrivateEndpoint]
+  properties: {
+    ipConfigurations: blobPrivateEndpointNic.properties.ipConfigurations
+    networkSecurityGroup: {
+      id: storageNsg.id
+    }
   }
 }
 
@@ -147,6 +201,24 @@ resource tablePrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = 
         }
       }
     ]
+    customNetworkInterfaceName: 'pe-table-nic'
+  }
+}
+
+resource tablePrivateEndpointNic 'Microsoft.Network/networkInterfaces@2023-05-01' existing = {
+  name: 'pe-table-nic'
+  dependsOn: [tablePrivateEndpoint]
+}
+
+resource tableNsgAssociation 'Microsoft.Network/networkInterfaces@2023-05-01' = {
+  name: 'pe-table-nsg'
+  location: location
+  dependsOn: [tablePrivateEndpoint]
+  properties: {
+    ipConfigurations: tablePrivateEndpointNic.properties.ipConfigurations
+    networkSecurityGroup: {
+      id: storageNsg.id
+    }
   }
 }
 
